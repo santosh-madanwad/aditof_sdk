@@ -26,9 +26,12 @@ elseif( APPLE )
 elseif( DRAGONBOARD )
         set(OS_SPECIFIC_DIR ${TARGET_STRING})
         set(TARGET_SPECIFIC_DIR dragonboard)
-elseif ( RASPBERRYPI )
+elseif( RASPBERRYPI )
         set(OS_SPECIFIC_DIR ${TARGET_STRING})
         set(TARGET_SPECIFIC_DIR raspberrypi)
+elseif( THOR96 )
+        set(OS_SPECIFIC_DIR ${TARGET_STRING})
+        set(TARGET_SPECIFIC_DIR thor96)
 elseif ( UNIX )
         set(OS_SPECIFIC_DIR linux)
 else()
@@ -52,6 +55,10 @@ file(GLOB PLATFORM_HEADERS
 
 if ( ${OS_SPECIFIC_DIR} STREQUAL ${TARGET_STRING} )
     list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/local_device.cpp)
+endif()
+
+if ( THOR96 )
+    list(REMOVE_ITEM PLATFORM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/target/local_device.cpp)
 endif()
 
 # Create target and set properties
