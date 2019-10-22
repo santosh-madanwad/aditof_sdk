@@ -1,4 +1,4 @@
-#include "aditof/device_enumerator_impl.h"
+#include "device_enumerator_impl.h"
 
 #include <dirent.h>
 #include <glog/logging.h>
@@ -40,7 +40,7 @@ aditof::Status DeviceEnumeratorImpl::findDevices(
     // we've got the right device and is compatible with the SDK
     DeviceConstructionData devData;
     devData.deviceType = DeviceType::LOCAL;
-    devData.driverPath = "/dev/video1";
+    devData.driverPath = "/dev/video1;/dev/v4l-subdev0";
     devices.emplace_back(devData);
 
     return status;

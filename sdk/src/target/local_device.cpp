@@ -312,6 +312,8 @@ aditof::Status LocalDevice::setFrameType(const aditof::FrameDetails &details) {
     /* Set the frame format in the driver */
     CLEAR(fmt);
     fmt.type = m_implData->videoBuffersType;
+    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+    fmt.fmt.pix.field = V4L2_FIELD_NONE;
     fmt.fmt.pix.width = details.width;
     fmt.fmt.pix.height = details.height;
 
@@ -482,6 +484,8 @@ aditof::Status LocalDevice::getFrame(uint16_t *buffer) {
         return status;
     }
 
+#if (not defined DEINTERLEAVE_ONLY)
+
     offset[0] = 0;
     offset[1] = height * width / 2;
     if ((width == 668)) {
@@ -552,6 +556,24 @@ aditof::Status LocalDevice::getFrame(uint16_t *buffer) {
         }
         // clang-format on
     }
+
+#else //(not defined DEINTERLEAVE_ONLY)
+
+    uint16_t *depthPtr = buffer;
+    uint16_t *irPtr = buffer + (width * height) /2;
+    int irOffset = width * height /2;
+
+    for (int i = 0; i < height; i++)
+    {
+        if(i&1)
+            memcpy(irPtr + (i >> 1) * width, pdata, width* 2);
+        else
+            memcpy(depthPtr + (i >> 1) * width, pdata, width * 2);
+
+        pdata += width * 2;
+    }
+
+#endif //(not defined DEINTERLEAVE_ONLY)
 
     status = enqueueInternalBuffer(buf);
     if (status != Status::OK) {
