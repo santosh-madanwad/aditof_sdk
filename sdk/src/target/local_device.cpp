@@ -17,6 +17,7 @@ extern "C" {
 #include <sstream>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <target_definitions.h>
 #include <unordered_map>
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
@@ -25,7 +26,6 @@ extern "C" {
 #define V4L2_CID_AD_DEV_READ_REG 0xA00A01
 #define CTRL_PACKET_SIZE 4096
 
-#define TEMP_SENSOR_DEV_PATH "/dev/i2c-1"
 #define LASER_TEMP_SENSOR_I2C_ADDR 0x49
 #define AFE_TEMP_SENSOR_I2C_ADDR 0x4b
 
@@ -114,6 +114,8 @@ LocalDevice::~LocalDevice() {
 aditof::Status LocalDevice::open() {
     using namespace aditof;
     Status status = Status::OK;
+
+    LOG(INFO) << "Opening device";
 
     struct stat st;
     struct v4l2_capability cap;
@@ -664,14 +666,14 @@ aditof::Status LocalDevice::writeAfeRegisters(const uint16_t *address,
     length *= 2 * sizeof(unsigned short);
     while (length) {
         memset(buf, 0, CTRL_PACKET_SIZE);
-        for (size_t i = 0;
-             i < (length > CTRL_PACKET_SIZE ? CTRL_PACKET_SIZE : length);
-             i += 4) {
+        size_t maxBytesToSend =
+            length > CTRL_PACKET_SIZE ? CTRL_PACKET_SIZE : length;
+        for (size_t i = 0; i < maxBytesToSend; i += 4) {
             *(unsigned short *)(buf + i) = address[sampleCnt];
             *(unsigned short *)(buf + i + 2) = data[sampleCnt];
             sampleCnt++;
         }
-        length -= CTRL_PACKET_SIZE;
+        length -= maxBytesToSend;
 
         extCtrl.size = 2048 * sizeof(unsigned short);
         extCtrl.p_u16 = (unsigned short *)buf;

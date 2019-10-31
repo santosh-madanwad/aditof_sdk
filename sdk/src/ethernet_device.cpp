@@ -165,6 +165,8 @@ aditof::Status EthernetDevice::stop() {
     Network *net = m_implData->net;
     std::unique_lock<std::mutex> mutex_lock(m_implData->net_mutex);
 
+    LOG(INFO) << "Stopping device";
+
     if (!net->isServer_Connected()) {
         LOG(WARNING) << "Not connected to server";
         return Status::UNREACHABLE;
@@ -358,6 +360,12 @@ aditof::Status EthernetDevice::getFrame(uint16_t *buffer) {
         return Status::GENERIC_ERROR;
     }
 
+    Status status = static_cast<Status>(net->recv_buff.status());
+    if (status != Status::OK) {
+        LOG(WARNING) << "getFrame() failed on target";
+        return status;
+    }
+
     // Deinterleave data. The server sends raw data (uninterleaved) for better
     // throughput (raw data chunck is smaller, deinterleaving is usually slower
     // on target).
@@ -366,8 +374,6 @@ aditof::Status EthernetDevice::getFrame(uint16_t *buffer) {
                          net->recv_buff.bytes_payload(0).length(),
                          m_implData->frameDetails_cache.width,
                          m_implData->frameDetails_cache.height);
-
-    Status status = static_cast<Status>(net->recv_buff.status());
 
     return status;
 }
