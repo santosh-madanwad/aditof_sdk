@@ -8,7 +8,12 @@ AdiTofDemoController::AdiTofDemoController()
       m_recorder(new AditofDemoRecorder()) {
 
     m_system.initialize();
+#if (defined ETHERNET_MODE)
+    // Use actual IP address of dragonboard
+    m_system.getCameraListAtIp(m_cameras,"192.168.1.3");
+#else
     m_system.getCameraList(m_cameras);
+#endif
     if (m_cameras.size()) {
         // Use the first camera that is found
         m_cameraInUse = 0;
