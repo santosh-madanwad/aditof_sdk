@@ -37,12 +37,6 @@ endif()
 if (WITH_OPENCV)
         add_subdirectory(bindings/opencv)
 endif()
-if (DRAGONBOARD)
-        add_subdirectory(apps/server)
-endif()
-if (THOR96)
-        add_subdirectory(apps/server)
-endif()
 
 ############################### Installer #######################################
 configure_file(cmake/aditof-setup.iss.cmakein ${CMAKE_CURRENT_BINARY_DIR}/aditof-setup.iss @ONLY)
