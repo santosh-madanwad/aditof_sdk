@@ -3,7 +3,7 @@ project(aditof)
 
 add_definitions(-DSDK_EXPORTS)
 find_package(glog 0.3.5 REQUIRED)
-find_package(Protobuf 3.5.0 REQUIRED)
+find_package(Protobuf 3.9.0 REQUIRED)
 find_package(Libwebsockets REQUIRED)
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HRDS src/buffer.proto)
@@ -29,9 +29,6 @@ elseif( DRAGONBOARD )
 elseif( RASPBERRYPI )
         set(OS_SPECIFIC_DIR ${TARGET_STRING})
         set(TARGET_SPECIFIC_DIR raspberrypi)
-elseif( THOR96 )
-        set(OS_SPECIFIC_DIR ${TARGET_STRING})
-        set(TARGET_SPECIFIC_DIR thor96)
 elseif ( UNIX )
         set(OS_SPECIFIC_DIR linux)
 else()
@@ -56,10 +53,6 @@ file(GLOB PLATFORM_HEADERS
 if ( ${OS_SPECIFIC_DIR} STREQUAL ${TARGET_STRING} )
     list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/local_device.cpp)
 endif()
-
-#if ( THOR96 )
-#    list(REMOVE_ITEM PLATFORM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/target/local_device.cpp)
-#endif()
 
 # Create target and set properties
 add_library(${PROJECT_NAME} SHARED
