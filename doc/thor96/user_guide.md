@@ -16,16 +16,12 @@
 - connect the 12V power supply to the Thor96. Once power is connected to the Thor96 the system will boot the Linux OS from the SD card.
 
 ### Power off sequence
-- under Linux open a terminal and type ***sudo poweroff***. This will safely power off the Thor96 and ensure that the SD card is properly umounted
 - remove the 12V supply from the Thor96
 - set the camera board power switch to off
 
 ### Troubleshooting
 - Linux does not boot
-  - Sometimes the SD card is not read correctly and this prevents the system to boot. Reset the system by removing and reapplying power to the Thor96
   - The SD card is corrupted and this prevents the system from booting. Reflash the SD card with the SD card image.
-- The Thor96 restarts after running the ***sudo poweroff*** command
-  - This is a frequent issue that prevents the Thor96 to be safely powered off and can lead to the corruption of the SD card. The simplest workaround to avoid SD card corruption is to remove the SD card while the system is running and then remove power from the Thor96. The other option is to watch carefully the system power state after runnig the poweroff command and immediately after seing that all the LEDs on the Thor96 have turned off remove the power from the Thor96.
 
 ## Running the evaluation application
 
@@ -71,7 +67,7 @@ sh-4.4# git pull
 sh-4.4# rm -rf build
 sh-4.4# mkdir build
 sh-4.4# cd build
-sh-4.4# cmake -DTHOR96=1 ..
+sh-4.4# cmake -DTHOR96=1 -DCMAKE_PREFIX_PATH="/opt/glog;/opt/websockets" ..
 sh-4.4# make -j4
 ``` 
 
