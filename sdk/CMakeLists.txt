@@ -57,10 +57,6 @@ if ( ${OS_SPECIFIC_DIR} STREQUAL ${TARGET_STRING} )
     list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/local_device.cpp)
 endif()
 
-#if ( THOR96 )
-#    list(REMOVE_ITEM PLATFORM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/target/local_device.cpp)
-#endif()
-
 # Create target and set properties
 add_library(${PROJECT_NAME} SHARED
     ${SOURCES}
