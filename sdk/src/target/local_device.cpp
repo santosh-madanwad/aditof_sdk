@@ -54,8 +54,8 @@ struct LocalDevice::ImplData {
     eeprom edev;
 
     ImplData()
-        : fd(-1), sfd(-1), nVideoBuffers(0),
-          videoBuffers(nullptr), frameDetails{0, 0, "", {0.0f, 1.0f}},
+        : fd(-1), sfd(-1), videoBuffers(nullptr),
+          nVideoBuffers(0), frameDetails{0, 0, "", {0.0f, 1.0f}},
           started(false) {}
 };
 
@@ -396,8 +396,10 @@ aditof::Status LocalDevice::program(const uint8_t *firmware, size_t size) {
     size_t readBytes = 0;
 
     if (size <= CTRL_PACKET_SIZE) {
+        memset(buf + size, 0, CTRL_PACKET_SIZE);
+        memcpy(buf, firmware, size);
         extCtrl.size = 2048 * sizeof(unsigned short);
-        extCtrl.p_u16 = (unsigned short *)firmware;
+        extCtrl.p_u16 = (unsigned short *)buf;
         extCtrl.id = V4L2_CID_AD_DEV_SET_CHIP_CONFIG;
         memset(&extCtrls, 0, sizeof(struct v4l2_ext_controls));
         extCtrls.controls = &extCtrl;
@@ -473,8 +475,6 @@ aditof::Status LocalDevice::getFrame(uint16_t *buffer) {
 
     unsigned int width;
     unsigned int height;
-    unsigned int offset[2];
-    unsigned int offset_idx;
     unsigned int buf_data_len;
     uint8_t *pdata;
 
@@ -488,8 +488,6 @@ aditof::Status LocalDevice::getFrame(uint16_t *buffer) {
 
 #if (not defined DEINTERLEAVE_ONLY)
 
-    offset[0] = 0;
-    offset[1] = height * width / 2;
     if ((width == 668)) {
         unsigned int j = 0;
         for (unsigned int i = 0; i < (buf_data_len); i += 3) {
@@ -755,9 +753,6 @@ aditof::Status LocalDevice::setCalibrationParams(const std::string &mode,
 aditof::Status LocalDevice::applyCalibrationToFrame(uint16_t *frame,
                                                     const std::string &mode) {
 
-    float gain = m_implData->calibration_cache[mode].gain;
-    float offset = m_implData->calibration_cache[mode].offset;
-
     unsigned int width = m_implData->frameDetails.width;
     unsigned int height = m_implData->frameDetails.height;
 
@@ -843,6 +838,8 @@ aditof::Status LocalDevice::enqueueInternalBuffer(struct v4l2_buffer &buf) {
                      << "errno: " << errno << " error: " << strerror(errno);
         return aditof::Status::GENERIC_ERROR;
     }
+
+    return aditof::Status::OK;
 }
 
 aditof::Status LocalDevice::getDeviceFileDescriptor(int &fileDescriptor) {

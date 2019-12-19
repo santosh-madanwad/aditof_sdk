@@ -108,7 +108,7 @@ deploy_doxygen() {
     if [[ "${TRAVIS_PULL_REQUEST}" == "false" && "${TRAVIS_BRANCH}" == "master" ]]
     then
         pushd ${TRAVIS_BUILD_DIR}/doc
-        git clone https://danielguramulta:${GITHUB_TOKEN}@github.com/analogdevicesinc/aditof_sdk --depth 1 --branch=gh-pages doc/html &>/dev/null
+        git clone https://github.com/${TRAVIS_REPO_SLUG} --depth 1 --branch=gh-pages doc/html &>/dev/null
 
         pushd doc/html
         rm -rf *
@@ -122,7 +122,7 @@ deploy_doxygen() {
         then
             git add --all .
             git commit --allow-empty --amend -m "Update documentation to ${TRAVIS_COMMIT:0:7}"
-            git push origin gh-pages -f &>/dev/null
+            git push https://${GITHUB_DOC_TOKEN}@github.com/${TRAVIS_REPO_SLUG} gh-pages -f &>/dev/null
         else
             echo_green "Documentation already up to date!"
         fi
@@ -138,11 +138,12 @@ deploy_doxygen() {
 build_and_install_glog() {
     REPO_DIR=$1
     INSTALL_DIR=$2
+    EXTRA_CMAKE_OPTIONS=$3
     BUILD_DIR=${REPO_DIR}/build_0_3_5
 
     mkdir -p ${BUILD_DIR}
     pushd ${BUILD_DIR}
-    cmake .. -DWITH_GFLAGS=off -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+    cmake .. -DWITH_GFLAGS=off -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ${EXTRA_CMAKE_OPTIONS}
     make -j${NUM_JOBS}
     sudo make install
     popd
@@ -154,11 +155,12 @@ build_and_install_glog() {
 build_and_install_protobuf() {
     REPO_DIR=$1
     INSTALL_DIR=$2
+    EXTRA_CMAKE_OPTIONS=$3
     BUILD_DIR=${REPO_DIR}/build_3_9_0
 
     mkdir -p ${BUILD_DIR}
     pushd ${BUILD_DIR}
-    cmake ../cmake/ -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+    cmake ../cmake/ -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ${EXTRA_CMAKE_OPTIONS}
     make -j${NUM_JOBS}
     sudo make install
     popd
@@ -170,11 +172,12 @@ build_and_install_protobuf() {
 build_and_install_websockets() {
     REPO_DIR=$1
     INSTALL_DIR=$2
+    EXTRA_CMAKE_OPTIONS=$3
     BUILD_DIR=${REPO_DIR}/build_3_1_0
 
     mkdir -p ${BUILD_DIR}
     pushd ${BUILD_DIR}
-    cmake .. -DLWS_STATIC_PIC=ON -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+    cmake .. -DLWS_STATIC_PIC=ON -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} ${EXTRA_CMAKE_OPTIONS}
     make -j${NUM_JOBS}
     sudo make install
     popd

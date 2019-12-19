@@ -263,7 +263,8 @@ char v4l2_subdev_prog_file[255] = "afe_firmware.bin";
 /* TODO: Make this declaration local or part of dev stucture */
 struct v4l2_plane gPlanes[8] = {{0}};
 int firmware_size = 0, flen = 0;
-char firmware[16384] = {0};
+const static int FIRMWARE_CAPACITY = 16384;
+char firmware[FIRMWARE_CAPACITY] = {0};
 unsigned short reg_addr;
 
 /* EEPROM data */
@@ -284,7 +285,8 @@ void stopHandler(int code) { stop.store(true); }
  * V4L2 streaming related
  */
 
-static int v4l2_process_data(LocalDevice *device, uvc_device *udev) {
+static int v4l2_process_data(std::shared_ptr<LocalDevice> device,
+                             uvc_device *udev) {
     int ret;
     struct v4l2_buffer ubuf;
     struct v4l2_buffer vbuf;
@@ -420,7 +422,6 @@ static int uvc_video_stream(struct uvc_device *dev, int enable) {
 
 static int uvc_uninit_device(struct uvc_device *dev) {
     struct v4l2_buffer ubuf;
-    struct v4l2_buffer vbuf;
     unsigned int i, count;
     int ret;
 
@@ -552,10 +553,10 @@ static void uvc_video_fill_buffer(struct uvc_device *dev,
     }
 }
 
-static int uvc_video_process(struct uvc_device *dev, LocalDevice *device) {
+static int uvc_video_process(struct uvc_device *dev,
+                             std::shared_ptr<LocalDevice> device) {
     struct v4l2_buffer ubuf;
     struct v4l2_buffer vbuf;
-    unsigned int i = 0;
 
     int ret;
     /*
@@ -814,7 +815,6 @@ err:
 
 static int uvc_video_reqbufs_userptr(struct uvc_device *dev, int nbufs) {
     struct v4l2_requestbuffers rb;
-    unsigned int i, j, bpl, payload_size;
     int ret;
 
     CLEAR(rb);
@@ -874,7 +874,7 @@ static int uvc_video_reqbufs(struct uvc_device *dev, int nbufs) {
  *	  supports a BULK type video streaming endpoint.
  */
 static int uvc_handle_streamon_event(struct uvc_device *dev,
-                                     LocalDevice *device) {
+                                     std::shared_ptr<LocalDevice> device) {
     int ret;
 
     ret = uvc_video_reqbufs(dev, dev->nbufs);
@@ -975,7 +975,7 @@ static void uvc_events_process_control(struct uvc_device *dev, uint8_t req,
                                        uint8_t cs, uint8_t entity_id,
                                        uint8_t len,
                                        struct uvc_request_data *resp,
-                                       LocalDevice *device) {
+                                       std::shared_ptr<LocalDevice> device) {
     switch (entity_id) {
     case 0:
         switch (cs) {
@@ -1462,7 +1462,7 @@ static void uvc_events_process_streaming(struct uvc_device *dev, uint8_t req,
 static void uvc_events_process_class(struct uvc_device *dev,
                                      struct usb_ctrlrequest *ctrl,
                                      struct uvc_request_data *resp,
-                                     LocalDevice *device) {
+                                     std::shared_ptr<LocalDevice> device) {
     if ((ctrl->bRequestType & USB_RECIP_MASK) != USB_RECIP_INTERFACE)
         return;
 
@@ -1487,7 +1487,7 @@ static void uvc_events_process_class(struct uvc_device *dev,
 static void uvc_events_process_setup(struct uvc_device *dev,
                                      struct usb_ctrlrequest *ctrl,
                                      struct uvc_request_data *resp,
-                                     LocalDevice *device) {
+                                     std::shared_ptr<LocalDevice> device) {
     dev->control = 0;
 
     USB_REQ_DEBUG("\nbRequestType %02x bRequest %02x wValue %04x wIndex %04x "
@@ -1565,16 +1565,14 @@ static int uvc_events_process_control_data(struct uvc_device *dev, uint8_t cs,
 
 static int uvc_events_process_data(struct uvc_device *dev,
                                    struct uvc_request_data *data,
-                                   LocalDevice *device) {
+                                   std::shared_ptr<LocalDevice> device) {
     struct uvc_streaming_control *target;
     struct uvc_streaming_control *ctrl;
-    struct v4l2_format fmt;
     const struct uvc_format_info *format;
     const struct uvc_frame_info *frame;
     const unsigned int *interval;
     unsigned int iformat, iframe;
     unsigned int nframes;
-    unsigned int *val = (unsigned int *)data->data;
     int ret;
 
     switch (dev->control) {
@@ -1622,6 +1620,7 @@ static int uvc_events_process_data(struct uvc_device *dev,
                         shouldRestartDevice = false;
                     }
                     flen = 0;
+                    memset(&firmware[flen], 0, FIRMWARE_CAPACITY);
                 }
             } else if (dev->set_cur_cs == 2) { /* AFE register address */
                 reg_addr = *((unsigned short *)(data->data));
@@ -1652,7 +1651,7 @@ static int uvc_events_process_data(struct uvc_device *dev,
              */
             return -EINVAL;
 #if 0
-          if (*val > PU_BRIGHTNESS_MAX_VAL) {
+          if (*(unsigned int *)data->data > PU_BRIGHTNESS_MAX_VAL) {
               printf ("Returning EINVAL for Brightness control\n");
               return -EINVAL;
           } else {
@@ -1714,7 +1713,8 @@ err:
     return ret;
 }
 
-static void uvc_events_process(struct uvc_device *dev, LocalDevice *device) {
+static void uvc_events_process(struct uvc_device *dev,
+                               std::shared_ptr<LocalDevice> device) {
     struct v4l2_event v4l2_event;
     struct uvc_event *uvc_event =
         reinterpret_cast<struct uvc_event *>(&v4l2_event.u.data);
@@ -1831,31 +1831,6 @@ static void uvc_events_init(struct uvc_device *dev) {
  * main
  */
 
-static void image_load(struct uvc_device *dev, const char *img) {
-    int fd = -1;
-
-    if (img == NULL)
-        return;
-
-    fd = open(img, O_RDONLY);
-    if (fd == -1) {
-        printf("Unable to open MJPEG image '%s'\n", img);
-        return;
-    }
-
-    dev->imgsize = lseek(fd, 0, SEEK_END);
-    lseek(fd, 0, SEEK_SET);
-    dev->imgdata = malloc(dev->imgsize);
-    if (dev->imgdata == NULL) {
-        printf("Unable to allocate memory for MJPEG image\n");
-        dev->imgsize = 0;
-        return;
-    }
-
-    read(fd, dev->imgdata, dev->imgsize);
-    close(fd);
-}
-
 static void usage(const char *argv0) {
     fprintf(stderr, "Usage: %s [options]\n", argv0);
     fprintf(stderr, "Available options are\n");
@@ -1931,8 +1906,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    LocalDevice *device = dynamic_cast<LocalDevice *>(
-        aditof::DeviceFactory::buildDevice(devsData[0]));
+    std::shared_ptr<LocalDevice> device =
+        std::dynamic_pointer_cast<LocalDevice>(
+            std::shared_ptr<aditof::DeviceInterface>(
+                aditof::DeviceFactory::buildDevice(devsData[0])));
 
     if (!device) {
         printf("Error when building LocalDevice!\n");

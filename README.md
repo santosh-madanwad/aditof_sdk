@@ -5,7 +5,7 @@ The **ADI ToF SDK** is a cross platform library for the Analog Devices depth cam
 
 The SDK provides an API to control the ToF camera, IR stream and depth data. Windows and Linux support are built into the SDK as well as sample code and wrappers for various languages including Python, C/C++ and Matlab.
 
-License : [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://github.com/analogdevicesinc/aditof_sdk/blob/master/LICENSE)
+License : [![License](https://img.shields.io/badge/license-BSD_3-blue.svg)](https://github.com/analogdevicesinc/aditof_sdk/blob/master/LICENSE)
 Platfrom details : [![Hardware](https://img.shields.io/badge/hardware-wiki-green.svg)](https://wiki.analog.com/resources/eval/user-guides/ad-96tof1-ebz)
 
 ## Supported host platforms
@@ -21,12 +21,12 @@ For more details on building the SDK on a host platform please check the **User 
 
 Designed using a modular approach, the 3D ToF hardware prototyping platform enables connectivity to the 96Boards development boards suite as well RaspberryPI or any other hardware platforms that have the RaspberryPI camera connector. 
 
-For more details on building the SDK on an embedded platform please check the **User Guide** specified below for either DragonBoard 410c or Raspberry PI 3.
+For more details on building the SDK on an embedded platform please check the **User Guide** specified below for specific embedded platform.
 
 | Platform | Documentation | GitHub master status | Downloads |
 | --------- | ----------- | ----------- | ----------- |
 | DragonBoard 410c | [User Guide](doc/dragonboard410c/user_guide.md) | [![Build Status](https://travis-ci.org/analogdevicesinc/aditof_sdk.svg?branch=master)](https://travis-ci.org/analogdevicesinc/aditof_sdk) | [![SD card image](https://img.shields.io/badge/release-latest_sd_card_image-blue.svg)](http://swdownloads.analog.com/cse/aditof/dragonboard410c-latest-image.tar.xz) |
-| Raspberry PI 3 | [User Guide](doc/raspberrypi3/user_guide.md) | [![Build Status](https://travis-ci.org/analogdevicesinc/aditof_sdk.svg?branch=master)](https://travis-ci.org/analogdevicesinc/aditof_sdk) | [![SD card image](https://img.shields.io/badge/release-SD_card_image_v0.1-blue.svg)](http://swdownloads.analog.com/cse/aditof/aditof-v0.1-raspberrypi3-sdimage.tar.xz) |
+| Raspberry Pi 3,4 | [User Guide](doc/raspberrypi3/user_guide.md) | [![Build Status](https://travis-ci.org/analogdevicesinc/aditof_sdk.svg?branch=master)](https://travis-ci.org/analogdevicesinc/aditof_sdk) | [![SD card image](https://img.shields.io/badge/release-SD_card_image_v0.1-blue.svg)](http://swdownloads.analog.com/cse/aditof/aditof-v0.1-raspberrypi3-sdimage.tar.xz) |
 | Thor96 | [User Guide](doc/thor96/user_guide.md) | [![Build Status](https://travis-ci.org/analogdevicesinc/aditof_sdk.svg?branch=master)](https://travis-ci.org/analogdevicesinc/aditof_sdk) | [![SD card image](https://img.shields.io/badge/release-SD_card_image_v0.1-blue.svg)](https://github.com/santosh-madanwad/aditof_sdk/releases/download/v1.1.1-thor96/aditof_sdk-v1.1.1-thor96.zip) |
 
 [How to write the SD card image onto the SD card?](doc/sdcard_burn.md)
@@ -40,6 +40,8 @@ For more details about the SDK check the links below:
 [Software stack documentation](https://github.com/analogdevicesinc/aditof_sdk/blob/master/sdk/readme.md)
 
 [API Doxygen documentation](https://analogdevicesinc.github.io/aditof_sdk/)
+
+[Building and installing the SDK](https://github.com/analogdevicesinc/aditof_sdk/tree/master/cmake/)
 
 ## SDK examples
 <table>
@@ -78,6 +80,11 @@ For more details about the SDK check the links below:
     <td>imshow</td>
     <td><a href="https://github.com/analogdevicesinc/aditof_sdk/tree/master/bindings/opencv/imshow"> C++ with OpenCV </a></td>
     <td>A basic example that displays data provided by the Aditof SDK</td>
+  </tr>
+   <tr>
+    <td>Image Acquisition Toolbox</td>
+    <td><a href="https://github.com/analogdevicesinc/aditof_sdk/tree/master/bindings/matlab"> MATLAB </a></td>
+    <td>Examples of how to use the AD-96TOF1-EBZ camera in MATALB over USB and Ethernet</td>
   </tr>
 </table>
 
